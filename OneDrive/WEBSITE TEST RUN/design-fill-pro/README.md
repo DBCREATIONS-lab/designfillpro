@@ -1,8 +1,24 @@
 # Design Fill Pro (local dev)
 
-A minimal full‑stack setup for local development:
+A minimal fullâ€'stack setup for local development:
 - Backend: FastAPI (Python) with file upload + image preview generation
-- Frontend: Next.js (React) with drag‑and‑drop upload and preview display
+- Frontend: Next.js (React) with dragâ€'andâ€'drop upload and preview display
+
+## 🚀 **Quick Setup from GitHub**
+
+### **One-Line Installation (Windows)**
+```cmd
+curl -L -o setup.bat https://raw.githubusercontent.com/DBCREATIONS-lab/designfillpro/main/setup-github-clone.bat && setup.bat
+```
+
+### **One-Line Installation (macOS/Linux)**
+```bash
+curl -L https://raw.githubusercontent.com/DBCREATIONS-lab/designfillpro/main/setup-github-clone.sh | bash
+```
+
+👉 **For detailed setup instructions, see [CLONE-SETUP.md](CLONE-SETUP.md)**
+
+---
 
 ## Prerequisites
 

@@ -280,6 +280,98 @@
             margin-right: 10px;
         }
         
+        /* Pattern Selection Styles */
+        .pattern-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .pattern-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
+            border-radius: 15px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .pattern-option:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .pattern-option input[type="checkbox"] {
+            display: none;
+        }
+        
+        .pattern-option input[type="checkbox"]:checked + label {
+            color: #667eea;
+        }
+        
+        .pattern-option input[type="checkbox"]:checked + label .pattern-preview {
+            border-color: #667eea;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+        
+        .pattern-option label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: #e0e0e0;
+            font-weight: 500;
+            margin: 0;
+        }
+        
+        .pattern-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            margin-right: 15px;
+            border: 2px solid #444;
+            transition: all 0.3s ease;
+        }
+        
+        .geometric-preview {
+            background: repeating-linear-gradient(
+                45deg,
+                #333,
+                #333 5px,
+                #555 5px,
+                #555 10px
+            );
+        }
+        
+        .organic-preview {
+            background: radial-gradient(circle at 30% 30%, #4a4a4a, #2a2a2a);
+        }
+        
+        .floral-preview {
+            background: 
+                radial-gradient(circle at 20% 50%, #ff6b6b 2px, transparent 2px),
+                radial-gradient(circle at 80% 50%, #4ecdc4 2px, transparent 2px),
+                #333;
+        }
+        
+        .abstract-preview {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+        
+        .tribal-preview {
+            background: 
+                linear-gradient(90deg, #333 50%, transparent 50%),
+                linear-gradient(0deg, #555 50%, transparent 50%);
+            background-size: 8px 8px;
+        }
+        
+        .mandala-preview {
+            background: 
+                radial-gradient(circle at center, #667eea 1px, transparent 1px),
+                radial-gradient(circle at center, transparent 8px, #333 8px, #333 10px, transparent 10px);
+            background-size: 20px 20px;
+        }
+        
         footer {
             text-align: center;
             padding: 40px 0;
@@ -330,6 +422,56 @@
             <div id="uploadPreview" style="display: none;">
                 <div id="imagePreview"></div>
                 <div id="uploadInfo"></div>
+                
+                <!-- Pattern Selection -->
+                <div id="patternSelection" style="display: none;">
+                    <h3>Choose Fill Patterns</h3>
+                    <div class="pattern-options">
+                        <div class="pattern-option">
+                            <input type="checkbox" id="geometric" name="patterns" value="geometric" checked>
+                            <label for="geometric">
+                                <span class="pattern-preview geometric-preview"></span>
+                                Geometric Patterns
+                            </label>
+                        </div>
+                        <div class="pattern-option">
+                            <input type="checkbox" id="organic" name="patterns" value="organic" checked>
+                            <label for="organic">
+                                <span class="pattern-preview organic-preview"></span>
+                                Organic Shapes
+                            </label>
+                        </div>
+                        <div class="pattern-option">
+                            <input type="checkbox" id="floral" name="patterns" value="floral">
+                            <label for="floral">
+                                <span class="pattern-preview floral-preview"></span>
+                                Floral Designs
+                            </label>
+                        </div>
+                        <div class="pattern-option">
+                            <input type="checkbox" id="abstract" name="patterns" value="abstract">
+                            <label for="abstract">
+                                <span class="pattern-preview abstract-preview"></span>
+                                Abstract Art
+                            </label>
+                        </div>
+                        <div class="pattern-option">
+                            <input type="checkbox" id="tribal" name="patterns" value="tribal">
+                            <label for="tribal">
+                                <span class="pattern-preview tribal-preview"></span>
+                                Tribal Patterns
+                            </label>
+                        </div>
+                        <div class="pattern-option">
+                            <input type="checkbox" id="mandala" name="patterns" value="mandala">
+                            <label for="mandala">
+                                <span class="pattern-preview mandala-preview"></span>
+                                Mandala Designs
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
                 <div id="processingBar" style="display: none;">
                     <div class="progress-container">
                         <div class="progress-bar"></div>
@@ -482,9 +624,10 @@
                 preview.innerHTML = '';
                 preview.appendChild(img);
                 
-                // Switch to preview mode
+                // Switch to preview mode and show pattern selection
                 document.getElementById('uploadDefault').style.display = 'none';
                 document.getElementById('uploadPreview').style.display = 'block';
+                document.getElementById('patternSelection').style.display = 'block';
                 document.getElementById('uploadSection').style.cursor = 'default';
             };
             
@@ -537,16 +680,74 @@
         }
         
         function showResults() {
+            // Get selected patterns
+            const selectedPatterns = [];
+            const checkboxes = document.querySelectorAll('input[name="patterns"]:checked');
+            checkboxes.forEach(checkbox => {
+                selectedPatterns.push({
+                    value: checkbox.value,
+                    label: checkbox.nextElementSibling.textContent.trim()
+                });
+            });
+            
+            if (selectedPatterns.length === 0) {
+                alert('Please select at least one pattern type to generate!');
+                return;
+            }
+            
+            const patternCount = selectedPatterns.length * 4; // 4 variations per pattern type
+            
+            // Generate pattern previews based on selection
+            let patternPreviews = '';
+            selectedPatterns.forEach(pattern => {
+                switch(pattern.value) {
+                    case 'geometric':
+                        patternPreviews += `
+                            <div style="background: repeating-linear-gradient(45deg, #667eea, #667eea 10px, #764ba2 10px, #764ba2 20px); height: 60px; border-radius: 8px;" title="Geometric Pattern"></div>
+                            <div style="background: repeating-conic-gradient(from 0deg, #667eea, #764ba2 60deg, #667eea 120deg); height: 60px; border-radius: 8px;" title="Geometric Pattern"></div>
+                        `;
+                        break;
+                    case 'organic':
+                        patternPreviews += `
+                            <div style="background: radial-gradient(ellipse at center, #667eea 30%, #764ba2 70%); height: 60px; border-radius: 8px;" title="Organic Pattern"></div>
+                            <div style="background: radial-gradient(circle at 20% 50%, #667eea 20%, transparent 20%), radial-gradient(circle at 80% 50%, #764ba2 20%, transparent 20%), #2a2a2a; height: 60px; border-radius: 8px;" title="Organic Pattern"></div>
+                        `;
+                        break;
+                    case 'floral':
+                        patternPreviews += `
+                            <div style="background: radial-gradient(circle at 25% 25%, #ff6b6b 3px, transparent 3px), radial-gradient(circle at 75% 75%, #4ecdc4 3px, transparent 3px), #667eea; background-size: 20px 20px; height: 60px; border-radius: 8px;" title="Floral Pattern"></div>
+                            <div style="background: linear-gradient(45deg, #ff6b6b 25%, transparent 25%), linear-gradient(-45deg, #4ecdc4 25%, transparent 25%), #667eea; background-size: 15px 15px; height: 60px; border-radius: 8px;" title="Floral Pattern"></div>
+                        `;
+                        break;
+                    case 'abstract':
+                        patternPreviews += `
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); height: 60px; border-radius: 8px;" title="Abstract Pattern"></div>
+                            <div style="background: conic-gradient(from 180deg, #667eea, #764ba2, #f093fb, #667eea); height: 60px; border-radius: 8px;" title="Abstract Pattern"></div>
+                        `;
+                        break;
+                    case 'tribal':
+                        patternPreviews += `
+                            <div style="background: repeating-linear-gradient(90deg, #667eea 0px, #667eea 10px, #764ba2 10px, #764ba2 20px); height: 60px; border-radius: 8px;" title="Tribal Pattern"></div>
+                            <div style="background: repeating-linear-gradient(45deg, #667eea 0px, #667eea 5px, transparent 5px, transparent 10px), repeating-linear-gradient(-45deg, #764ba2 0px, #764ba2 5px, transparent 5px, transparent 10px); height: 60px; border-radius: 8px;" title="Tribal Pattern"></div>
+                        `;
+                        break;
+                    case 'mandala':
+                        patternPreviews += `
+                            <div style="background: radial-gradient(circle at center, #667eea 2px, transparent 2px), radial-gradient(circle at center, transparent 15px, #764ba2 15px, #764ba2 17px, transparent 17px); background-size: 30px 30px; height: 60px; border-radius: 8px;" title="Mandala Pattern"></div>
+                            <div style="background: conic-gradient(from 0deg, #667eea 60deg, #764ba2 60deg 120deg, #667eea 120deg 180deg, #764ba2 180deg 240deg, #667eea 240deg 300deg, #764ba2 300deg); height: 60px; border-radius: 8px;" title="Mandala Pattern"></div>
+                        `;
+                        break;
+                }
+            });
+            
             const resultHTML = `
                 <div style="text-align: center;">
                     <h3 style="color: #667eea; margin-bottom: 20px;">✨ Pattern Generation Complete!</h3>
                     <div style="background: rgba(102, 126, 234, 0.1); border-radius: 15px; padding: 30px; margin: 20px 0;">
-                        <p style="font-size: 1.1rem; margin-bottom: 15px;">Successfully generated <strong>24 unique patterns</strong> from your design!</p>
+                        <p style="font-size: 1.1rem; margin-bottom: 15px;">Successfully generated <strong>${patternCount} unique patterns</strong> from your design!</p>
+                        <p style="color: #b8b8b8; margin-bottom: 20px;">Pattern types: ${selectedPatterns.map(p => p.label).join(', ')}</p>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; margin: 20px 0;">
-                            <div style="background: linear-gradient(45deg, #667eea, #764ba2); height: 60px; border-radius: 8px;"></div>
-                            <div style="background: linear-gradient(135deg, #f093fb, #f5576c); height: 60px; border-radius: 8px;"></div>
-                            <div style="background: linear-gradient(45deg, #4facfe, #00f2fe); height: 60px; border-radius: 8px;"></div>
-                            <div style="background: linear-gradient(135deg, #43e97b, #38f9d7); height: 60px; border-radius: 8px;"></div>
+                            ${patternPreviews}
                         </div>
                         <div style="margin-top: 25px;">
                             <button class="btn" onclick="downloadPatterns()">Download All Patterns</button>
@@ -566,7 +767,16 @@
             uploadedFile = null;
             document.getElementById('uploadDefault').style.display = 'block';
             document.getElementById('uploadPreview').style.display = 'none';
+            document.getElementById('patternSelection').style.display = 'none';
             document.getElementById('uploadSection').style.cursor = 'pointer';
+            
+            // Reset pattern selections to default
+            document.getElementById('geometric').checked = true;
+            document.getElementById('organic').checked = true;
+            document.getElementById('floral').checked = false;
+            document.getElementById('abstract').checked = false;
+            document.getElementById('tribal').checked = false;
+            document.getElementById('mandala').checked = false;
         }
         
         // Enhanced drag and drop functionality

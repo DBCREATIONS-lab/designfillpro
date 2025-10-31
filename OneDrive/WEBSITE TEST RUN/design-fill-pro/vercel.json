@@ -1,6 +1,14 @@
 {
-  "framework": null,
-  "buildCommand": null,
-  "outputDirectory": null,
-  "installCommand": null
+  "builds": [
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
 }

@@ -505,7 +505,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             createStars();
             setupEventListeners();
+            preventDefaultDragBehavior();
         });
+
+        // Prevent default drag behavior on entire page
+        function preventDefaultDragBehavior() {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                document.addEventListener(eventName, function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+        }
 
         function setupEventListeners() {
             const dragDropArea = document.getElementById('dragDropArea');

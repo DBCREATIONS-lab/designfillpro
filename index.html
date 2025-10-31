@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Fill Pro - Professional Design Patterns</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            color: #b8b8b8;
+            margin-bottom: 30px;
+        }
+        
+        .upload-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(102, 126, 234, 0.5);
+            border-radius: 20px;
+            padding: 60px;
+            text-align: center;
+            margin-bottom: 60px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .upload-section:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2);
+        }
+        
+        .upload-section h3 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        
+        .patterns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .pattern-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .pattern-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
+        }
+        
+        .pattern-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        
+        .pricing-section {
+            margin-top: 60px;
+        }
+        
+        .pricing-section h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .pricing-card.featured {
+            border: 2px solid #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.05);
+            box-shadow: 0 16px 48px rgba(102, 126, 234, 0.2);
+        }
+        
+        .pricing-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+        
+        .price {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .features {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .features li {
+            padding: 8px 0;
+            color: #b8b8b8;
+        }
+        
+        .features li:before {
+            content: "✓ ";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            margin-top: 60px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            color: #b8b8b8;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .upload-section { padding: 40px 20px; }
+            .patterns-grid, .pricing-grid { grid-template-columns: 1fr; }
+            .pricing-card.featured { transform: none; }
+        }
+        
+        /* Animation keyframes */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Design Fill Pro</h1>
+            <p class="subtitle">Professional design patterns to fill your creative vision</p>
+        </header>
+
+        <section class="upload-section" onclick="handleUpload()">
+            <h3>Upload Your Design</h3>
+            <p>Drag and drop your image or click to browse</p>
+            <button class="btn">Choose File</button>
+        </section>
+
+        <section class="patterns">
+            <h2>Pattern Categories</h2>
+            <div class="patterns-grid">
+                <div class="pattern-card">
+                    <h3>Geometric Patterns</h3>
+                    <p>Modern geometric designs perfect for contemporary projects</p>
+                </div>
+                <div class="pattern-card">
+                    <h3>Nature Patterns</h3>
+                    <p>Organic designs inspired by natural forms and textures</p>
+                </div>
+                <div class="pattern-card">
+                    <h3>Abstract Patterns</h3>
+                    <p>Creative abstract designs for unique artistic expressions</p>
+                </div>
+                <div class="pattern-card">
+                    <h3>Traditional Patterns</h3>
+                    <p>Classic patterns with timeless appeal and elegance</p>
+                </div>
+                <div class="pattern-card">
+                    <h3>Decorative Patterns</h3>
+                    <p>Ornamental designs for sophisticated decorative projects</p>
+                </div>
+                <div class="pattern-card">
+                    <h3>Texture Patterns</h3>
+                    <p>Rich texture patterns that add depth and dimension</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="pricing-section">
+            <h2>Choose Your Plan</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Free</h3>
+                    <div class="price">$0</div>
+                    <ul class="features">
+                        <li>5 patterns per month</li>
+                        <li>Basic resolution</li>
+                        <li>Community support</li>
+                    </ul>
+                    <button class="btn">Get Started</button>
+                </div>
+                <div class="pricing-card featured">
+                    <h3>Pro</h3>
+                    <div class="price">$19</div>
+                    <ul class="features">
+                        <li>100 patterns per month</li>
+                        <li>High resolution</li>
+                        <li>Priority support</li>
+                        <li>Commercial license</li>
+                    </ul>
+                    <button class="btn">Start Pro</button>
+                </div>
+                <div class="pricing-card">
+                    <h3>Enterprise</h3>
+                    <div class="price">$49</div>
+                    <ul class="features">
+                        <li>Unlimited patterns</li>
+                        <li>Ultra-high resolution</li>
+                        <li>24/7 support</li>
+                        <li>Extended license</li>
+                        <li>Custom patterns</li>
+                    </ul>
+                    <button class="btn">Go Enterprise</button>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2024 Design Fill Pro. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        function handleUpload() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    alert('File uploaded: ' + file.name + '. Pattern processing would begin here.');
+                }
+            };
+            input.click();
+        }
+
+        // Add animation effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.pattern-card, .pricing-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                setTimeout(() => {
+                    card.classList.add('animate');
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

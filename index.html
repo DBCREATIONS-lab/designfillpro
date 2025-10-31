@@ -300,6 +300,7 @@
         .pattern-option:hover {
             border-color: #667eea;
             background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
         }
         
         .pattern-option input[type="checkbox"] {
@@ -308,11 +309,21 @@
         
         .pattern-option input[type="checkbox"]:checked + label {
             color: #667eea;
+            font-weight: bold;
         }
         
-        .pattern-option input[type="checkbox"]:checked + label .pattern-preview {
-            border-color: #667eea;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+        .pattern-option input[type="checkbox"]:checked {
+            + label .pattern-preview {
+                border-color: #667eea;
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+            }
+        }
+        
+        .pattern-option input[type="checkbox"]:checked + label::after {
+            content: " ✓";
+            color: #667eea;
+            font-weight: bold;
         }
         
         .pattern-option label {
@@ -980,6 +991,27 @@
         
         // Initialize drag and drop when page loads
         document.addEventListener('DOMContentLoaded', initializeDragDrop);
+        
+        // Initialize pattern selection
+        document.addEventListener('DOMContentLoaded', function() {
+            // Make pattern options more interactive
+            const patternOptions = document.querySelectorAll('.pattern-option');
+            patternOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const checkbox = this.querySelector('input[type="checkbox"]');
+                    checkbox.checked = !checkbox.checked;
+                    
+                    // Visual feedback
+                    if (checkbox.checked) {
+                        this.style.borderColor = '#667eea';
+                        this.style.background = 'rgba(102, 126, 234, 0.15)';
+                    } else {
+                        this.style.borderColor = 'transparent';
+                        this.style.background = 'rgba(255, 255, 255, 0.05)';
+                    }
+                });
+            });
+        });
         
         // Add animation effects
         document.addEventListener('DOMContentLoaded', function() {

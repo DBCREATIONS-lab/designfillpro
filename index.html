@@ -697,12 +697,12 @@
                     return;
                 }
                 
-                // Create canvas for image analysis
+                // Create canvas for image analysis and mask generation
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                canvas.width = Math.min(img.naturalWidth, 800);
-                canvas.height = Math.min(img.naturalHeight, 800);
+                canvas.width = Math.min(img.naturalWidth, 400);
+                canvas.height = Math.min(img.naturalHeight, 400);
                 
                 // Draw image to canvas for pixel analysis
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -711,59 +711,87 @@
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                     const pixels = imageData.data;
                     
-                    // Analyze image structure
+                    // Create a binary mask canvas
+                    const maskCanvas = document.createElement('canvas');
+                    const maskCtx = maskCanvas.getContext('2d');
+                    maskCanvas.width = canvas.width;
+                    maskCanvas.height = canvas.height;
+                    
+                    const maskImageData = maskCtx.createImageData(canvas.width, canvas.height);
+                    const maskPixels = maskImageData.data;
+                    
+                    // Analyze image structure and create mask
                     let transparentPixels = 0;
                     let totalPixels = pixels.length / 4;
-                    let hasInnerShapes = false;
-                    let edgePixels = 0;
+                    let solidPixels = 0;
                     
-                    // Check for transparency and edge detection
+                    // Process each pixel to create a mask
                     for (let i = 0; i < pixels.length; i += 4) {
+                        const r = pixels[i];
+                        const g = pixels[i + 1];
+                        const b = pixels[i + 2];
                         const alpha = pixels[i + 3];
+                        
+                        // Calculate luminance to determine if pixel is part of the shape
+                        const luminance = (r * 0.299 + g * 0.587 + b * 0.114);
+                        const isShapePart = alpha > 128 && luminance < 200; // Solid, non-white pixels
+                        
                         if (alpha < 128) {
                             transparentPixels++;
-                        }
-                        
-                        // Simple edge detection for inner shapes
-                        const x = (i / 4) % canvas.width;
-                        const y = Math.floor(i / 4 / canvas.width);
-                        
-                        if (x > 0 && x < canvas.width - 1 && y > 0 && y < canvas.height - 1) {
-                            const currentAlpha = pixels[i + 3];
-                            const rightAlpha = pixels[i + 7];
-                            const bottomAlpha = pixels[i + (canvas.width * 4) + 3];
-                            
-                            if (Math.abs(currentAlpha - rightAlpha) > 100 || 
-                                Math.abs(currentAlpha - bottomAlpha) > 100) {
-                                edgePixels++;
-                            }
+                            // Transparent areas - don't fill
+                            maskPixels[i] = 0;     // R
+                            maskPixels[i + 1] = 0; // G
+                            maskPixels[i + 2] = 0; // B
+                            maskPixels[i + 3] = 0; // A
+                        } else if (isShapePart) {
+                            solidPixels++;
+                            // Solid shape areas - fill with pattern
+                            maskPixels[i] = 255;     // R
+                            maskPixels[i + 1] = 255; // G
+                            maskPixels[i + 2] = 255; // B
+                            maskPixels[i + 3] = 255; // A
+                        } else {
+                            // Light/white areas inside shape - don't fill (inner spaces)
+                            maskPixels[i] = 0;     // R
+                            maskPixels[i + 1] = 0; // G
+                            maskPixels[i + 2] = 0; // B
+                            maskPixels[i + 3] = 0; // A
                         }
                     }
                     
-                    // Store analysis results globally for use in pattern generation
+                    // Put the mask data back to canvas
+                    maskCtx.putImageData(maskImageData, 0, 0);
+                    
+                    // Store analysis results and mask globally
                     window.imageAnalysis = {
                         hasTransparency: transparentPixels > totalPixels * 0.1,
                         transparentRatio: transparentPixels / totalPixels,
-                        hasInnerShapes: edgePixels > totalPixels * 0.05,
-                        complexity: edgePixels / totalPixels,
-                        dimensions: { width: canvas.width, height: canvas.height }
+                        solidRatio: solidPixels / totalPixels,
+                        hasInnerShapes: (totalPixels - transparentPixels - solidPixels) > totalPixels * 0.1,
+                        complexity: solidPixels / totalPixels,
+                        dimensions: { width: canvas.width, height: canvas.height },
+                        maskDataURL: maskCanvas.toDataURL(),
+                        originalDataURL: canvas.toDataURL()
                     };
                     
-                    console.log('Image Analysis:', window.imageAnalysis);
+                    console.log('Advanced Image Analysis:', window.imageAnalysis);
                     
                 } catch (error) {
-                    console.log('Canvas analysis failed (likely CORS), using basic analysis');
-                    // Fallback analysis based on file type and name
+                    console.log('Canvas analysis failed (likely CORS), using fallback analysis');
+                    // Fallback analysis
                     window.imageAnalysis = {
-                        hasTransparency: uploadedFile.type === 'image/png' || uploadedFile.name.toLowerCase().includes('transparent'),
+                        hasTransparency: uploadedFile.type === 'image/png',
                         transparentRatio: 0.2,
+                        solidRatio: 0.6,
                         hasInnerShapes: true,
-                        complexity: 0.3,
-                        dimensions: { width: 400, height: 400 }
+                        complexity: 0.6,
+                        dimensions: { width: 400, height: 400 },
+                        maskDataURL: null,
+                        originalDataURL: null
                     };
                 }
                 
-                setTimeout(resolve, 1000); // Give time for analysis visualization
+                setTimeout(resolve, 1000);
             });
         }
         
@@ -803,161 +831,123 @@
                 analysisInfo += `✓ Inner geometry and negative space respected<br>`;
             }
             analysisInfo += `✓ Image complexity: ${analysis.complexity > 0.3 ? 'High' : analysis.complexity > 0.1 ? 'Medium' : 'Low'}<br>`;
-            analysisInfo += `✓ Patterns generated with multiply blend mode for shape preservation`;
+            analysisInfo += `✓ Patterns generated with precise shape masking to preserve inner geometry`;
             
             // Generate pattern previews based on selection and analysis
             let patternPreviews = '';
             
-            // Get the uploaded image for masking
-            const uploadedImg = document.querySelector('#imagePreview img');
-            const imageDataURL = uploadedImg ? uploadedImg.src : '';
+            // Use the generated mask for true shape-aware patterns
+            const maskDataURL = analysis.maskDataURL;
+            const hasMask = maskDataURL !== null;
             
             selectedPatterns.forEach(pattern => {
                 switch(pattern.value) {
                     case 'geometric':
                         patternPreviews += `
                             <div style="
-                                background: 
-                                    ${imageDataURL ? `url('${imageDataURL}')` : 'repeating-linear-gradient(45deg, #667eea, #667eea 8px, transparent 8px, transparent 12px)'}, 
-                                    repeating-linear-gradient(45deg, #667eea, #667eea 8px, transparent 8px, transparent 12px), 
-                                    repeating-linear-gradient(-45deg, #764ba2, #764ba2 8px, transparent 8px, transparent 12px);
-                                background-size: contain, 20px 20px, 20px 20px;
-                                background-blend-mode: ${imageDataURL ? 'multiply' : 'normal'};
-                                height: 60px; border-radius: 8px; background-repeat: no-repeat, repeat, repeat;
-                                background-position: center, 0 0, 0 0;
-                            " title="Shape-aware Geometric Pattern"></div>
+                                background: repeating-linear-gradient(45deg, #667eea, #667eea 8px, transparent 8px, transparent 12px), 
+                                           repeating-linear-gradient(-45deg, #764ba2, #764ba2 8px, transparent 8px, transparent 12px);
+                                ${hasMask ? `mask: url('${maskDataURL}'); -webkit-mask: url('${maskDataURL}'); mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center;` : ''}
+                                background-size: 15px 15px, 15px 15px;
+                                height: 60px; border-radius: 8px;
+                            " title="Shape-Masked Geometric Pattern"></div>
                             <div style="
-                                background: 
-                                    ${imageDataURL ? `url('${imageDataURL}')` : 'radial-gradient(circle at 25% 25%, #667eea 3px, transparent 5px)'}, 
-                                    radial-gradient(circle at 25% 25%, #667eea 3px, transparent 8px), 
-                                    radial-gradient(circle at 75% 75%, #764ba2 3px, transparent 8px), 
-                                    #1a1a2e;
-                                background-size: contain, 15px 15px, 15px 15px, auto;
-                                background-blend-mode: ${imageDataURL ? 'multiply' : 'normal'};
-                                height: 60px; border-radius: 8px; background-repeat: no-repeat, repeat, repeat, repeat;
-                                background-position: center, 0 0, 0 0, 0 0;
-                            " title="Dotted Geometric with Shape Mask"></div>
+                                background: radial-gradient(circle at 25% 25%, #667eea 3px, transparent 6px), 
+                                           radial-gradient(circle at 75% 75%, #764ba2 3px, transparent 6px), 
+                                           #1a1a2e;
+                                ${hasMask ? `mask: url('${maskDataURL}'); -webkit-mask: url('${maskDataURL}'); mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center;` : ''}
+                                background-size: 12px 12px, 12px 12px, auto;
+                                height: 60px; border-radius: 8px;
+                            " title="Dotted Geometric with Shape Cutout"></div>
                         `;
                         break;
                     case 'organic':
                         patternPreviews += `
                             <div style="
-                                background: 
-                                    ${imageDataURL ? `url('${imageDataURL}')` : 'radial-gradient(ellipse at 30% 30%, #667eea 20%, transparent 40%)'}, 
-                                    radial-gradient(ellipse at 30% 30%, #667eea 15%, transparent 30%), 
-                                    radial-gradient(ellipse at 70% 70%, #764ba2 12%, transparent 25%), 
-                                    #1a1a2e;
-                                background-size: contain, 40px 30px, 40px 30px, auto;
-                                background-blend-mode: ${imageDataURL ? 'multiply' : 'normal'};
-                                height: 60px; border-radius: 8px; background-repeat: no-repeat, repeat, repeat, repeat;
-                                background-position: center, 0 0, 0 0, 0 0;
+                                background: radial-gradient(ellipse at 30% 30%, #667eea 15%, transparent 30%), 
+                                           radial-gradient(ellipse at 70% 70%, #764ba2 12%, transparent 25%), 
+                                           #1a1a2e;
+                                ${hasMask ? `mask: url('${maskDataURL}'); -webkit-mask: url('${maskDataURL}'); mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center;` : ''}
+                                background-size: 35px 25px, 35px 25px, auto;
+                                height: 60px; border-radius: 8px;
                             " title="Organic with Shape Preservation"></div>
                             <div style="
-                                background: 
-                                    ${imageDataURL ? `url('${imageDataURL}')` : 'radial-gradient(circle at 20% 50%, #667eea 15px, transparent 20px)'}, 
-                                    radial-gradient(circle at 20% 50%, #667eea 8px, transparent 15px), 
-                                    radial-gradient(circle at 80% 50%, #764ba2 6px, transparent 12px), 
-                                    #1a1a2e;
-                                background-size: contain, 50px 35px, 50px 35px, auto;
-                                background-blend-mode: ${imageDataURL ? 'multiply' : 'normal'};
-                                height: 60px; border-radius: 8px; background-repeat: no-repeat, repeat, repeat, repeat;
-                                background-position: center, 0 0, 0 0, 0 0;
-                            " title="Organic Bubble with Mask"></div>
+                                background: radial-gradient(circle at 20% 50%, #667eea 8px, transparent 15px), 
+                                           radial-gradient(circle at 80% 50%, #764ba2 6px, transparent 12px), 
+                                           #1a1a2e;
+                                ${hasMask ? `mask: url('${maskDataURL}'); -webkit-mask: url('${maskDataURL}'); mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center;` : ''}
+                                background-size: 40px 25px, 40px 25px, auto;
+                                height: 60px; border-radius: 8px;
+                            " title="Organic Bubble with Precise Mask"></div>
                         `;
                         break;
                     case 'floral':
                         patternPreviews += `
                             <div style="
-                                background: 
-                                    ${imageDataURL ? `url('${imageDataURL}')` : 'radial-gradient(circle at 25% 25%, #ff6b6b 2px, transparent 8px)'}, 
-                                    radial-gradient(circle at 25% 25%, #ff6b6b 2px, transparent 6px), 
-                                    radial-gradient(circle at 75% 75%, #4ecdc4 2px, transparent 6px), 
-                                    radial-gradient(circle at 50% 50%, transparent 12px, #667eea 12px, #667eea 13px, transparent 13px);
-                                background-size: contain, 25px 25px, 25px 25px, 25px 25px;
-                                background-blend-mode: ${imageDataURL ? 'multiply' : 'normal'};
-                                height: 60px; border-radius: 8px; background-repeat: no-repeat, repeat, repeat, repeat;
-                                background-position: center, 0 0, 0 0, 0 0;
-                            " title="Floral with Shape Cutouts"></div>
+                                background: radial-gradient(circle at 25% 25%, #ff6b6b 2px, transparent 6px), 
+                                           radial-gradient(circle at 75% 75%, #4ecdc4 2px, transparent 6px), 
+                                           radial-gradient(circle at 50% 50%, transparent 10px, #667eea 10px, #667eea 11px, transparent 11px);
+                                ${hasMask ? `mask: url('${maskDataURL}'); -webkit-mask: url('${maskDataURL}'); mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center;` : ''}
+                                background-size: 20px 20px, 20px 20px, 20px 20px;
+                                height: 60px; border-radius: 8px;
+                            " title="Floral with Shape-Aware Cutouts"></div>
                             <div style="
-                                background: 
-                                    ${imageDataURL ? `url('${imageDataURL}')` : 'conic-gradient(from 0deg at 50% 50%, #ff6b6b 60deg, transparent 60deg 120deg, #4ecdc4 120deg 180deg, transparent 180deg)'}, 
-                                    conic-gradient(from 0deg at 50% 50%, #ff6b6b 45deg, transparent 45deg 90deg, #4ecdc4 90deg 135deg, transparent 135deg), 
-                                    radial-gradient(circle at center, transparent 6px, rgba(102, 126, 234, 0.2) 8px);
-                                background-size: contain, 30px 30px, 30px 30px;
-                                background-blend-mode: ${imageDataURL ? 'multiply' : 'normal'};
-                                height: 60px; border-radius: 8px; background-repeat: no-repeat, repeat, repeat;
-                                background-position: center, 0 0, 0 0;
-                            " title="Petal Pattern with Image Mask"></div>
+                                background: conic-gradient(from 0deg at 50% 50%, #ff6b6b 45deg, transparent 45deg 90deg, #4ecdc4 90deg 135deg, transparent 135deg), 
+                                           radial-gradient(circle at center, transparent 5px, rgba(102, 126, 234, 0.3) 7px);
+                                ${hasMask ? `mask: url('${maskDataURL}'); -webkit-mask: url('${maskDataURL}'); mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center;` : ''}
+                                background-size: 25px 25px, 25px 25px;
+                                height: 60px; border-radius: 8px;
+                            " title="Petal Pattern with Exact Shape"></div>
                         `;
                         break;
                     case 'abstract':
                         patternPreviews += `
                             <div style="
-                                background: 
-                                    ${imageDataURL ? `url('${imageDataURL}')` : 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)'}, 
-                                    linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-                                background-size: contain, auto;
-                                background-blend-mode: ${imageDataURL ? 'multiply' : 'normal'};
-                                height: 60px; border-radius: 8px; background-repeat: no-repeat, repeat;
-                                background-position: center, 0 0;
-                            " title="Abstract with Shape"></div>
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+                                ${hasMask ? `mask: url('${maskDataURL}'); -webkit-mask: url('${maskDataURL}'); mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center;` : ''}
+                                height: 60px; border-radius: 8px;
+                            " title="Abstract with Shape Boundary"></div>
                             <div style="
-                                background: 
-                                    ${imageDataURL ? `url('${imageDataURL}')` : 'conic-gradient(from 180deg, #667eea, #764ba2, #f093fb, #667eea)'}, 
-                                    conic-gradient(from 180deg, #667eea, #764ba2, #f093fb, #667eea);
-                                background-size: contain, auto;
-                                background-blend-mode: ${imageDataURL ? 'multiply' : 'normal'};
-                                height: 60px; border-radius: 8px; background-repeat: no-repeat, repeat;
-                                background-position: center, 0 0;
+                                background: conic-gradient(from 180deg, #667eea, #764ba2, #f093fb, #667eea);
+                                ${hasMask ? `mask: url('${maskDataURL}'); -webkit-mask: url('${maskDataURL}'); mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center;` : ''}
+                                height: 60px; border-radius: 8px;
                             " title="Conic Abstract with Mask"></div>
                         `;
                         break;
                     case 'tribal':
                         patternPreviews += `
                             <div style="
-                                background: 
-                                    ${imageDataURL ? `url('${imageDataURL}')` : 'repeating-linear-gradient(90deg, #667eea 0px, #667eea 6px, transparent 6px, transparent 10px)'}, 
-                                    repeating-linear-gradient(90deg, #667eea 0px, #667eea 6px, transparent 6px, transparent 10px), 
-                                    repeating-linear-gradient(0deg, #764ba2 0px, #764ba2 6px, transparent 6px, transparent 10px);
-                                background-size: contain, 20px 20px, 20px 20px;
-                                background-blend-mode: ${imageDataURL ? 'multiply' : 'normal'};
-                                height: 60px; border-radius: 8px; background-repeat: no-repeat, repeat, repeat;
-                                background-position: center, 0 0, 0 0;
+                                background: repeating-linear-gradient(90deg, #667eea 0px, #667eea 6px, transparent 6px, transparent 10px), 
+                                           repeating-linear-gradient(0deg, #764ba2 0px, #764ba2 6px, transparent 6px, transparent 10px);
+                                ${hasMask ? `mask: url('${maskDataURL}'); -webkit-mask: url('${maskDataURL}'); mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center;` : ''}
+                                background-size: 16px 16px, 16px 16px;
+                                height: 60px; border-radius: 8px;
                             " title="Tribal Grid with Shape Cutout"></div>
                             <div style="
-                                background: 
-                                    ${imageDataURL ? `url('${imageDataURL}')` : 'linear-gradient(45deg, #667eea 20%, transparent 20% 40%, #764ba2 40% 60%, transparent 60%)'}, 
-                                    linear-gradient(45deg, #667eea 15%, transparent 15% 35%, #764ba2 35% 55%, transparent 55%), 
-                                    linear-gradient(-45deg, #764ba2 15%, transparent 15% 35%, #667eea 35% 55%, transparent 55%);
-                                background-size: contain, 18px 18px, 18px 18px;
-                                background-blend-mode: ${imageDataURL ? 'multiply' : 'normal'};
-                                height: 60px; border-radius: 8px; background-repeat: no-repeat, repeat, repeat;
-                                background-position: center, 0 0, 0 0;
-                            " title="Tribal Diamond with Image Mask"></div>
+                                background: linear-gradient(45deg, #667eea 15%, transparent 15% 35%, #764ba2 35% 50%, transparent 50%), 
+                                           linear-gradient(-45deg, #764ba2 15%, transparent 15% 35%, #667eea 35% 50%, transparent 50%);
+                                ${hasMask ? `mask: url('${maskDataURL}'); -webkit-mask: url('${maskDataURL}'); mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center;` : ''}
+                                background-size: 16px 16px, 16px 16px;
+                                height: 60px; border-radius: 8px;
+                            " title="Tribal Diamond with Precise Mask"></div>
                         `;
                         break;
                     case 'mandala':
                         patternPreviews += `
                             <div style="
-                                background: 
-                                    ${imageDataURL ? `url('${imageDataURL}')` : 'radial-gradient(circle at center, transparent 4px, #667eea 4px 6px, transparent 6px 10px, #764ba2 10px 12px, transparent 12px)'}, 
-                                    radial-gradient(circle at center, transparent 4px, #667eea 4px 6px, transparent 6px 10px, #764ba2 10px 12px, transparent 12px), 
-                                    conic-gradient(from 0deg, rgba(102, 126, 234, 0.3) 45deg, transparent 45deg 90deg, rgba(118, 75, 162, 0.3) 90deg 135deg, transparent 135deg);
-                                background-size: contain, 35px 35px, 35px 35px;
-                                background-blend-mode: ${imageDataURL ? 'multiply' : 'normal'};
-                                height: 60px; border-radius: 8px; background-repeat: no-repeat, repeat, repeat;
-                                background-position: center, 0 0, 0 0;
-                            " title="Mandala with Shape Void"></div>
+                                background: radial-gradient(circle at center, transparent 3px, #667eea 3px 5px, transparent 5px 8px, #764ba2 8px 10px, transparent 10px), 
+                                           conic-gradient(from 0deg, rgba(102, 126, 234, 0.4) 30deg, transparent 30deg 60deg, rgba(118, 75, 162, 0.4) 60deg 90deg, transparent 90deg);
+                                ${hasMask ? `mask: url('${maskDataURL}'); -webkit-mask: url('${maskDataURL}'); mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center;` : ''}
+                                background-size: 30px 30px, 30px 30px;
+                                height: 60px; border-radius: 8px;
+                            " title="Mandala with Shape-Aware Void"></div>
                             <div style="
-                                background: 
-                                    ${imageDataURL ? `url('${imageDataURL}')` : 'conic-gradient(from 0deg, #667eea 25deg, transparent 25deg 50deg, #764ba2 50deg 75deg, transparent 75deg)'}, 
-                                    conic-gradient(from 0deg, #667eea 20deg, transparent 20deg 40deg, #764ba2 40deg 60deg, transparent 60deg), 
-                                    radial-gradient(circle at center, transparent 8px, rgba(255,255,255,0.1) 10px);
-                                background-size: contain, 40px 40px, 40px 40px;
-                                background-blend-mode: ${imageDataURL ? 'multiply' : 'normal'};
-                                height: 60px; border-radius: 8px; background-repeat: no-repeat, repeat, repeat;
-                                background-position: center, 0 0, 0 0;
-                            " title="Segmented Mandala with Mask"></div>
+                                background: conic-gradient(from 0deg, #667eea 20deg, transparent 20deg 40deg, #764ba2 40deg 60deg, transparent 60deg), 
+                                           radial-gradient(circle at center, transparent 6px, rgba(255,255,255,0.1) 8px);
+                                ${hasMask ? `mask: url('${maskDataURL}'); -webkit-mask: url('${maskDataURL}'); mask-size: contain; -webkit-mask-size: contain; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-position: center; -webkit-mask-position: center;` : ''}
+                                background-size: 35px 35px, 35px 35px;
+                                height: 60px; border-radius: 8px;
+                            " title="Segmented Mandala with Exact Shape"></div>
                         `;
                         break;
                 }

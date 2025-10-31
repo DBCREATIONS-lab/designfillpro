@@ -1,239 +1,46 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Design Fill Pro - Professional Design Pattern Service</title>
+    <title>Design Fill Pro - WORKING TEST</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f0f23 75%, #1a1a2e 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
-            color: #e2e8f0;
-            min-height: 100vh;
-        }
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .hero h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, #a855f7, #3b82f6, #10b981);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-align: center;
-            padding: 4rem 2rem 2rem;
-        }
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-        .section { margin-bottom: 4rem; }
-        .section h2 { font-size: 2.5rem; margin-bottom: 2rem; text-align: center; color: #a855f7; }
-        .patterns-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
-        .pattern-category {
-            background: rgba(15, 15, 35, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 1.5rem;
-            border: 1px solid rgba(168, 85, 247, 0.2);
-            transition: all 0.3s ease;
-        }
-        .pattern-category:hover {
-            transform: translateY(-5px);
-            border-color: #a855f7;
-            box-shadow: 0 15px 35px rgba(168, 85, 247, 0.2);
-        }
-        .pricing-card {
-            background: rgba(15, 15, 35, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 2rem;
-            text-align: center;
-            border: 1px solid rgba(168, 85, 247, 0.2);
-        }
-        .btn {
-            background: linear-gradient(135deg, #a855f7, #3b82f6);
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            margin: 0;
+            padding: 40px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(168, 85, 247, 0.3);
-        }
-        .footer {
-            background: rgba(15, 15, 35, 0.9);
-            border-top: 1px solid rgba(168, 85, 247, 0.2);
-            padding: 2rem 0;
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
             text-align: center;
-            color: #94a3b8;
-            margin-top: 4rem;
         }
-        .upload-zone {
-            border: 2px dashed rgba(168, 85, 247, 0.5);
-            border-radius: 15px;
-            padding: 3rem 2rem;
-            text-align: center;
-            background: rgba(15, 15, 35, 0.6);
-            backdrop-filter: blur(10px);
-            margin: 2rem 0;
-            transition: all 0.3s ease;
-        }
-        .upload-zone:hover {
-            border-color: #a855f7;
-            background: rgba(15, 15, 35, 0.8);
+        .timestamp {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-top: 2rem;
         }
     </style>
 </head>
 <body>
-    <div class="hero">
-        <h1>Design Fill Pro</h1>
-        <p style="text-align: center; font-size: 1.2rem; color: #94a3b8;">Transform your designs with premium patterns and professional fills</p>
+    <h1>🎉 Design Fill Pro is LIVE! 🎉</h1>
+    <p style="font-size: 1.5rem; text-align: center;">
+        Your dark theme SaaS application is successfully deployed!
+    </p>
+    <p style="font-size: 1.2rem; text-align: center; margin-top: 2rem;">
+        ✅ Deployment successful<br>
+        ✅ Files are accessible<br>
+        ✅ Configuration is working
+    </p>
+    <div class="timestamp">
+        Deployed: October 31, 2025 - Commit: 7a85bd1
     </div>
-
-    <div class="container">
-        <!-- Upload Section -->
-        <section class="section">
-            <h2>Upload Your Design</h2>
-            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-                <p style="font-size: 1.3rem; color: #a855f7; margin-bottom: 1rem;">📁 Click or drag files here</p>
-                <p style="color: #94a3b8;">Supports SVG, PNG, JPG files</p>
-                <input type="file" id="fileInput" style="display: none;" accept=".svg,.png,.jpg,.jpeg" multiple>
-            </div>
-        </section>
-
-        <!-- Pattern Library -->
-        <section class="section">
-            <h2>Pattern Library</h2>
-            <div class="patterns-grid">
-                <div class="pattern-category">
-                    <h3 style="color: #a855f7; margin-bottom: 1rem;">🔷 Geometric Patterns</h3>
-                    <p>Clean lines, mathematical precision, modern aesthetics</p>
-                    <button class="btn" style="margin-top: 1rem;">Explore Geometric</button>
-                </div>
-                <div class="pattern-category">
-                    <h3 style="color: #a855f7; margin-bottom: 1rem;">🌿 Nature Inspired</h3>
-                    <p>Organic forms, earth tones, natural harmony</p>
-                    <button class="btn" style="margin-top: 1rem;">Browse Nature</button>
-                </div>
-                <div class="pattern-category">
-                    <h3 style="color: #a855f7; margin-bottom: 1rem;">🎨 Abstract Art</h3>
-                    <p>Creative expressions, vibrant colors, artistic freedom</p>
-                    <button class="btn" style="margin-top: 1rem;">View Abstract</button>
-                </div>
-                <div class="pattern-category">
-                    <h3 style="color: #a855f7; margin-bottom: 1rem;">⚪ Minimal Design</h3>
-                    <p>Simple elegance, subtle patterns, timeless appeal</p>
-                    <button class="btn" style="margin-top: 1rem;">See Minimal</button>
-                </div>
-                <div class="pattern-category">
-                    <h3 style="color: #a855f7; margin-bottom: 1rem;">🔲 Textured Fills</h3>
-                    <p>Rich textures, depth and dimension, tactile feel</p>
-                    <button class="btn" style="margin-top: 1rem;">Get Textures</button>
-                </div>
-                <div class="pattern-category">
-                    <h3 style="color: #a855f7; margin-bottom: 1rem;">✨ Luxury Collection</h3>
-                    <p>Premium aesthetics, golden accents, sophisticated finish</p>
-                    <button class="btn" style="margin-top: 1rem;">Access Luxury</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Pricing Plans -->
-        <section class="section">
-            <h2>Choose Your Plan</h2>
-            <div class="patterns-grid">
-                <div class="pricing-card">
-                    <h3 style="color: #a855f7; margin-bottom: 1rem;">Free Starter</h3>
-                    <div style="font-size: 3rem; font-weight: bold; margin: 1rem 0; background: linear-gradient(135deg, #a855f7, #3b82f6); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">$0</div>
-                    <ul style="text-align: left; margin: 1rem 0; color: #94a3b8;">
-                        <li>✓ 5 pattern downloads/month</li>
-                        <li>✓ Basic geometric patterns</li>
-                        <li>✓ Standard resolution</li>
-                    </ul>
-                    <button class="btn" style="width: 100%;">Get Started</button>
-                </div>
-                <div class="pricing-card" style="border: 2px solid #a855f7;">
-                    <h3 style="color: #a855f7; margin-bottom: 1rem;">Pro Designer</h3>
-                    <div style="font-size: 3rem; font-weight: bold; margin: 1rem 0; background: linear-gradient(135deg, #a855f7, #3b82f6); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">$19</div>
-                    <ul style="text-align: left; margin: 1rem 0; color: #94a3b8;">
-                        <li>✓ Unlimited downloads</li>
-                        <li>✓ All pattern categories</li>
-                        <li>✓ High resolution files</li>
-                        <li>✓ Custom color variations</li>
-                    </ul>
-                    <button class="btn" style="width: 100%;">Choose Pro</button>
-                </div>
-                <div class="pricing-card">
-                    <h3 style="color: #a855f7; margin-bottom: 1rem;">Enterprise</h3>
-                    <div style="font-size: 3rem; font-weight: bold; margin: 1rem 0; background: linear-gradient(135deg, #a855f7, #3b82f6); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">$49</div>
-                    <ul style="text-align: left; margin: 1rem 0; color: #94a3b8;">
-                        <li>✓ Everything in Pro</li>
-                        <li>✓ Custom pattern creation</li>
-                        <li>✓ API access</li>
-                        <li>✓ Priority support</li>
-                    </ul>
-                    <button class="btn" style="width: 100%;">Go Enterprise</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Account Management -->
-        <section class="section">
-            <h2>Account & Tokens</h2>
-            <div style="background: rgba(15, 15, 35, 0.8); backdrop-filter: blur(10px); border-radius: 15px; padding: 2rem; border: 1px solid rgba(168, 85, 247, 0.2);">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
-                    <div style="text-align: center;">
-                        <h3 style="color: #a855f7; margin-bottom: 1rem;">Current Balance</h3>
-                        <div style="font-size: 2rem; font-weight: bold;">0 Tokens</div>
-                        <p style="color: #94a3b8; margin-top: 0.5rem;">Purchase tokens to unlock premium patterns</p>
-                    </div>
-                    <div style="text-align: center;">
-                        <h3 style="color: #a855f7; margin-bottom: 1rem;">Purchase Tokens</h3>
-                        <button class="btn">Buy 100 Tokens - $10</button>
-                        <p style="color: #94a3b8; margin-top: 0.5rem;">1 token = 1 premium pattern</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <footer class="footer">
-        <p>&copy; 2024 Design Fill Pro. All rights reserved. | Professional pattern library for designers</p>
-    </footer>
-
-    <script>
-        // File upload handling
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const files = e.target.files;
-            if (files.length > 0) {
-                alert(`Selected ${files.length} file(s). Pattern filling feature coming soon!`);
-            }
-        });
-
-        // Pattern category interactions
-        document.querySelectorAll('.pattern-category .btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                alert('Pattern gallery opening soon! Choose a subscription plan to get early access.');
-            });
-        });
-
-        // Pricing plan interactions
-        document.querySelectorAll('.pricing-card .btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const plan = this.closest('.pricing-card').querySelector('h3').textContent;
-                alert(`Redirecting to ${plan} signup. Payment integration coming soon!`);
-            });
-        });
-    </script>
 </body>
 </html>
-D A R K   T H E M E   T E S T   1 0 / 3 1 / 2 0 2 5   1 1 : 5 2 : 1 0 
- 
- 

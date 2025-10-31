@@ -51,6 +51,7 @@
             margin-bottom: 30px;
         }
         
+        
         .upload-section {
             background: rgba(255, 255, 255, 0.05);
             border: 2px dashed rgba(102, 126, 234, 0.5);
@@ -61,6 +62,8 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            min-height: 200px;
+            position: relative;
         }
         
         .upload-section:hover {
@@ -70,10 +73,89 @@
             box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2);
         }
         
+        .upload-section.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
         .upload-section h3 {
             font-size: 2rem;
             margin-bottom: 15px;
             color: #667eea;
+        }
+        
+        #imagePreview {
+            max-width: 300px;
+            max-height: 200px;
+            margin: 0 auto 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        #imagePreview img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+        
+        #uploadInfo {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 0.9rem;
+            color: #b8b8b8;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: progressPulse 1.5s infinite;
+        }
+        
+        @keyframes progressPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 15px;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        #uploadActions {
+            margin-top: 25px;
+        }
+        
+        #processingText {
+            margin-top: 10px;
+            color: #667eea;
+            font-weight: bold;
         }
         
         .patterns-grid {
@@ -239,10 +321,26 @@
             <p class="subtitle">Professional design patterns to fill your creative vision</p>
         </header>
 
-        <section class="upload-section" onclick="handleUpload()">
-            <h3>Upload Your Design</h3>
-            <p>Drag and drop your image or click to browse</p>
-            <button class="btn">Choose File</button>
+        <section class="upload-section" id="uploadSection">
+            <div id="uploadDefault">
+                <h3>Upload Your Design</h3>
+                <p>Drag and drop your image or click to browse</p>
+                <button class="btn" onclick="handleUpload()">Choose File</button>
+            </div>
+            <div id="uploadPreview" style="display: none;">
+                <div id="imagePreview"></div>
+                <div id="uploadInfo"></div>
+                <div id="processingBar" style="display: none;">
+                    <div class="progress-container">
+                        <div class="progress-bar"></div>
+                    </div>
+                    <p id="processingText">Processing your design...</p>
+                </div>
+                <div id="uploadActions">
+                    <button class="btn" onclick="processImage()">Generate Patterns</button>
+                    <button class="btn-secondary" onclick="resetUpload()">Upload Different</button>
+                </div>
+            </div>
         </section>
 
         <section class="patterns">
@@ -320,19 +418,224 @@
     </div>
 
     <script>
+        let uploadedFile = null;
+        
         function handleUpload() {
             const input = document.createElement('input');
             input.type = 'file';
-            input.accept = 'image/*';
+            input.accept = 'image/*,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg';
             input.onchange = function(event) {
                 const file = event.target.files[0];
                 if (file) {
-                    alert('File uploaded: ' + file.name + '. Pattern processing would begin here.');
+                    console.log('File selected via input:', file.name, file.type);
+                    handleFile(file);
                 }
             };
             input.click();
         }
-
+        
+        function handleFile(file) {
+            console.log('Handling file:', file.name, file.type, file.size);
+            
+            // Validate file size (max 10MB)
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size > maxSize) {
+                alert('File is too large. Please upload an image smaller than 10MB.');
+                return;
+            }
+            
+            // Validate file type more thoroughly
+            const validImageTypes = [
+                'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 
+                'image/webp', 'image/bmp', 'image/svg+xml'
+            ];
+            
+            const isValidImage = validImageTypes.includes(file.type) || 
+                               file.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/);
+            
+            if (!isValidImage) {
+                alert('Please upload a valid image file (JPEG, PNG, GIF, WebP, BMP, or SVG)');
+                return;
+            }
+            
+            uploadedFile = file;
+            
+            // Show file info
+            const fileSize = (file.size / 1024 / 1024).toFixed(2);
+            const fileInfo = `
+                <strong>File:</strong> ${file.name}<br>
+                <strong>Size:</strong> ${fileSize} MB<br>
+                <strong>Type:</strong> ${file.type || 'Image file'}
+            `;
+            document.getElementById('uploadInfo').innerHTML = fileInfo;
+            
+            // Show image preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = 'Uploaded image preview';
+                img.style.maxWidth = '100%';
+                img.style.height = 'auto';
+                
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = '';
+                preview.appendChild(img);
+                
+                // Switch to preview mode
+                document.getElementById('uploadDefault').style.display = 'none';
+                document.getElementById('uploadPreview').style.display = 'block';
+                document.getElementById('uploadSection').style.cursor = 'default';
+            };
+            
+            reader.onerror = function() {
+                alert('Error reading file. Please try again.');
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        function processImage() {
+            if (!uploadedFile) return;
+            
+            // Hide actions and show processing
+            document.getElementById('uploadActions').style.display = 'none';
+            document.getElementById('processingBar').style.display = 'block';
+            
+            // Simulate processing with progress bar
+            let progress = 0;
+            const progressBar = document.querySelector('.progress-bar');
+            const processingText = document.getElementById('processingText');
+            
+            const messages = [
+                'Analyzing image structure...',
+                'Detecting pattern elements...',
+                'Generating design variations...',
+                'Applying artistic filters...',
+                'Optimizing for different formats...',
+                'Finalizing your patterns...'
+            ];
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress > 100) progress = 100;
+                
+                progressBar.style.width = progress + '%';
+                
+                const messageIndex = Math.floor((progress / 100) * messages.length);
+                if (messageIndex < messages.length) {
+                    processingText.textContent = messages[messageIndex];
+                }
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        showResults();
+                    }, 1000);
+                }
+            }, 300);
+        }
+        
+        function showResults() {
+            const resultHTML = `
+                <div style="text-align: center;">
+                    <h3 style="color: #667eea; margin-bottom: 20px;">✨ Pattern Generation Complete!</h3>
+                    <div style="background: rgba(102, 126, 234, 0.1); border-radius: 15px; padding: 30px; margin: 20px 0;">
+                        <p style="font-size: 1.1rem; margin-bottom: 15px;">Successfully generated <strong>24 unique patterns</strong> from your design!</p>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; margin: 20px 0;">
+                            <div style="background: linear-gradient(45deg, #667eea, #764ba2); height: 60px; border-radius: 8px;"></div>
+                            <div style="background: linear-gradient(135deg, #f093fb, #f5576c); height: 60px; border-radius: 8px;"></div>
+                            <div style="background: linear-gradient(45deg, #4facfe, #00f2fe); height: 60px; border-radius: 8px;"></div>
+                            <div style="background: linear-gradient(135deg, #43e97b, #38f9d7); height: 60px; border-radius: 8px;"></div>
+                        </div>
+                        <div style="margin-top: 25px;">
+                            <button class="btn" onclick="downloadPatterns()">Download All Patterns</button>
+                            <button class="btn-secondary" onclick="resetUpload()">Upload New Design</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('uploadPreview').innerHTML = resultHTML;
+        }
+        
+        function downloadPatterns() {
+            alert('🎉 Download started! Your 24 unique patterns are being prepared...\n\nIn a real app, this would download a ZIP file with all generated patterns.');
+        }
+        
+        function resetUpload() {
+            uploadedFile = null;
+            document.getElementById('uploadDefault').style.display = 'block';
+            document.getElementById('uploadPreview').style.display = 'none';
+            document.getElementById('uploadSection').style.cursor = 'pointer';
+        }
+        
+        // Enhanced drag and drop functionality
+        function initializeDragDrop() {
+            const uploadSection = document.getElementById('uploadSection');
+            
+            // Prevent default drag behaviors on the entire document
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                document.addEventListener(eventName, preventDefaults, false);
+                uploadSection.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            // Highlight upload area when dragging files over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadSection.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadSection.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight(e) {
+                uploadSection.classList.add('dragover');
+            }
+            
+            function unhighlight(e) {
+                uploadSection.classList.remove('dragover');
+            }
+            
+            // Handle the dropped files
+            uploadSection.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                console.log('Files dropped:', files.length);
+                
+                if (files.length > 0) {
+                    const file = files[0];
+                    console.log('File type:', file.type);
+                    console.log('File name:', file.name);
+                    
+                    // Check if it's an image file (including JPEG variations)
+                    const validImageTypes = [
+                        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 
+                        'image/webp', 'image/bmp', 'image/svg+xml'
+                    ];
+                    
+                    const isValidImage = validImageTypes.includes(file.type) || 
+                                       file.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/);
+                    
+                    if (isValidImage) {
+                        handleFile(file);
+                    } else {
+                        alert('Please upload a valid image file (JPEG, PNG, GIF, WebP, BMP, or SVG)');
+                    }
+                }
+            }
+        }
+        
+        // Initialize drag and drop when page loads
+        document.addEventListener('DOMContentLoaded', initializeDragDrop);
+        
         // Add animation effects
         document.addEventListener('DOMContentLoaded', function() {
             const cards = document.querySelectorAll('.pattern-card, .pricing-card');

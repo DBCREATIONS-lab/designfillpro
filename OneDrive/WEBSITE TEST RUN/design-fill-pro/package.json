@@ -1,24 +1,15 @@
 {
   "name": "design-fill-pro",
   "version": "1.0.0",
-  "description": "Professional Design Pattern Service - Dark Theme SaaS Platform",
+  "description": "Professional Design Pattern Service",
   "main": "index.html",
   "scripts": {
-    "build": "echo 'Static HTML - no build needed'",
-    "start": "echo 'Static HTML - use vercel dev for local development'"
+    "build": "echo 'No build needed for static HTML'"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/DBCREATIONS-lab/designfillpro.git"
   },
-  "keywords": [
-    "design",
-    "patterns",
-    "saas",
-    "dark-theme",
-    "professional"
-  ],
   "author": "DBCREATIONS-lab",
-  "license": "MIT",
-  "homepage": "https://dbcreations-lab.github.io/designfillpro/"
+  "license": "MIT"
 }

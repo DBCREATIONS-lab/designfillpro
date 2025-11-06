@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Fill Pro</title>
+  <style>
+    body { background: #181818; color: #eee; font-family: Arial, sans-serif; margin: 0; }
+    .container { max-width: 600px; margin: 40px auto; background: #222; border-radius: 12px; box-shadow: 0 4px 24px #0006; padding: 32px; }
+    h1 { text-align: center; margin-bottom: 24px; }
+    input[type="file"] { margin-bottom: 16px; }
+    #result { margin-top: 24px; text-align: center; }
+    .pattern-preview { margin-top: 16px; border-radius: 8px; overflow: hidden; display: inline-block; }
+    .pattern-svg { width: 320px; height: 320px; display: block; background: #fff; }
+    .btn { background: #444; color: #fff; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 1rem; margin-top: 12px; }
+    .btn:hover { background: #667eea; }
+    .download-link { display: block; margin-top: 16px; color: #67eaea; text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Design Fill Pro</h1>
+    <input type="file" id="fileInput" accept="image/svg+xml,image/png,image/jpeg">
+    <div id="preview" style="margin-bottom:16px;"></div>
+    <div style="margin-bottom:16px;">
+      <h3 style="margin-bottom:4px;">Pattern Fills</h3>
+      <label for="patternFolder">Choose Pattern Folder:</label>
+      <input type="file" id="patternFolder" webkitdirectory directory multiple accept="image/svg+xml" style="margin-bottom:8px;" />
+      <div id="patternPreviews" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;"></div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <h3 style="margin-bottom:4px;">Background Scenes, Wildlife, Scrolls</h3>
+      <label for="backgroundFolder">Choose Background Folder:</label>
+      <input type="file" id="backgroundFolder" webkitdirectory directory multiple accept="image/svg+xml" style="margin-bottom:8px;" />
+      <div id="backgroundPreviews" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;"></div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <h3 style="margin-bottom:4px;">Clipart Patterns (Test)</h3>
+      <label for="clipartPatternFolder">Choose Clipart Pattern Folder:</label>
+      <input type="file" id="clipartPatternFolder" webkitdirectory directory multiple accept="image/svg+xml" style="margin-bottom:8px;" />
+      <div id="clipartPatternPreviews" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;"></div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <h3 style="margin-bottom:4px;">Clipart Backgrounds (Test)</h3>
+      <label for="clipartBackgroundFolder">Choose Clipart Background Folder:</label>
+      <input type="file" id="clipartBackgroundFolder" webkitdirectory directory multiple accept="image/svg+xml" style="margin-bottom:8px;" />
+      <div id="clipartBackgroundPreviews" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;"></div>
+    </div>
+    <button class="btn" id="fillBtn">Fill with Pattern</button>
+    <div id="result"></div>
+  </div>
+  <script>
+  // Clipart folders and preview logic
+  const clipartPatternFolder = document.getElementById('clipartPatternFolder');
+  const clipartPatternPreviews = document.getElementById('clipartPatternPreviews');
+  let clipartPatternFiles = [];
+  let selectedClipartPatternSVG = null;
+  clipartPatternFolder.addEventListener('change', (e) => {
+    clipartPatternFiles = Array.from(e.target.files).filter(f => f.name.endsWith('.svg'));
+    clipartPatternPreviews.innerHTML = '';
+    selectedClipartPatternSVG = null;
+    if (clipartPatternFiles.length === 0) {
+      clipartPatternPreviews.innerHTML = '<div style="color:red;">No SVG clipart patterns found in folder.</div>';
+      return;
+    }
+    clipartPatternFiles.forEach((file, idx) => {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const svgContent = ev.target.result.replace(/<\?xml.*?\?>/, '').replace(/<!DOCTYPE.*?>/, '');
+        const previewDiv = document.createElement('div');
+        previewDiv.style.border = '2px solid #444';
+        previewDiv.style.borderRadius = '8px';
+        previewDiv.style.background = '#fff';
+        previewDiv.style.padding = '4px';
+        previewDiv.style.cursor = 'pointer';
+        previewDiv.style.width = '60px';
+        previewDiv.style.height = '60px';
+        previewDiv.style.display = 'flex';
+        previewDiv.style.alignItems = 'center';
+        previewDiv.style.justifyContent = 'center';
+        previewDiv.innerHTML = `<svg width="48" height="48">${svgContent}</svg>`;
+        previewDiv.title = file.name;
+        previewDiv.onclick = () => {
+          Array.from(clipartPatternPreviews.children).forEach(c => c.style.boxShadow = '');
+          previewDiv.style.boxShadow = '0 0 0 3px #67eaea';
+          selectedClipartPatternSVG = svgContent;
+        };
+        if (idx === 0) {
+          previewDiv.style.boxShadow = '0 0 0 3px #67eaea';
+          selectedClipartPatternSVG = svgContent;
+        }
+        clipartPatternPreviews.appendChild(previewDiv);
+      };
+      reader.readAsText(file);
+    });
+  });
+
+  const clipartBackgroundFolder = document.getElementById('clipartBackgroundFolder');
+  const clipartBackgroundPreviews = document.getElementById('clipartBackgroundPreviews');
+  let clipartBackgroundFiles = [];
+  let selectedClipartBackgroundSVG = null;
+  clipartBackgroundFolder.addEventListener('change', (e) => {
+    clipartBackgroundFiles = Array.from(e.target.files).filter(f => f.name.endsWith('.svg'));
+    clipartBackgroundPreviews.innerHTML = '';
+    selectedClipartBackgroundSVG = null;
+    if (clipartBackgroundFiles.length === 0) {
+      clipartBackgroundPreviews.innerHTML = '<div style="color:red;">No SVG clipart backgrounds found in folder.</div>';
+      return;
+    }
+    clipartBackgroundFiles.forEach((file, idx) => {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const svgContent = ev.target.result.replace(/<\?xml.*?\?>/, '').replace(/<!DOCTYPE.*?>/, '');
+        const previewDiv = document.createElement('div');
+        previewDiv.style.border = '2px solid #444';
+        previewDiv.style.borderRadius = '8px';
+        previewDiv.style.background = '#fff';
+        previewDiv.style.padding = '4px';
+        previewDiv.style.cursor = 'pointer';
+        previewDiv.style.width = '60px';
+        previewDiv.style.height = '60px';
+        previewDiv.style.display = 'flex';
+        previewDiv.style.alignItems = 'center';
+        previewDiv.style.justifyContent = 'center';
+        previewDiv.innerHTML = `<svg width="48" height="48">${svgContent}</svg>`;
+        previewDiv.title = file.name;
+        previewDiv.onclick = () => {
+          Array.from(clipartBackgroundPreviews.children).forEach(c => c.style.boxShadow = '');
+          previewDiv.style.boxShadow = '0 0 0 3px #eaea67';
+          selectedClipartBackgroundSVG = svgContent;
+        };
+        if (idx === 0) {
+          previewDiv.style.boxShadow = '0 0 0 3px #eaea67';
+          selectedClipartBackgroundSVG = svgContent;
+        }
+        clipartBackgroundPreviews.appendChild(previewDiv);
+      };
+      reader.readAsText(file);
+    });
+  });
+  const fileInput = document.getElementById('fileInput');
+  const fillBtn = document.getElementById('fillBtn');
+  const resultDiv = document.getElementById('result');
+  const previewDiv = document.getElementById('preview');
+  const patternFolder = document.getElementById('patternFolder');
+  const patternPreviews = document.getElementById('patternPreviews');
+  let uploadedSVG = null;
+  let uploadedImg = null;
+  let lastSVG = null;
+  let patternFiles = [];
+  let selectedPatternSVG = null;
+  let backgroundFiles = [];
+  let selectedBackgroundSVG = null;
+  // Background folder picker and preview logic
+  const backgroundFolder = document.getElementById('backgroundFolder');
+  const backgroundPreviews = document.getElementById('backgroundPreviews');
+  backgroundFolder.addEventListener('change', (e) => {
+    backgroundFiles = Array.from(e.target.files).filter(f => f.name.endsWith('.svg'));
+    backgroundPreviews.innerHTML = '';
+    selectedBackgroundSVG = null;
+    if (backgroundFiles.length === 0) {
+      backgroundPreviews.innerHTML = '<div style="color:red;">No SVG backgrounds found in folder.</div>';
+      return;
+    }
+    backgroundFiles.forEach((file, idx) => {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const svgContent = ev.target.result.replace(/<\?xml.*?\?>/, '').replace(/<!DOCTYPE.*?>/, '');
+        const previewDiv = document.createElement('div');
+        previewDiv.style.border = '2px solid #444';
+        previewDiv.style.borderRadius = '8px';
+        previewDiv.style.background = '#fff';
+        previewDiv.style.padding = '4px';
+        previewDiv.style.cursor = 'pointer';
+        previewDiv.style.width = '60px';
+        previewDiv.style.height = '60px';
+        previewDiv.style.display = 'flex';
+        previewDiv.style.alignItems = 'center';
+        previewDiv.style.justifyContent = 'center';
+        previewDiv.innerHTML = `<svg width="48" height="48">${svgContent}</svg>`;
+        previewDiv.title = file.name;
+        previewDiv.onclick = () => {
+          Array.from(backgroundPreviews.children).forEach(c => c.style.boxShadow = '');
+          previewDiv.style.boxShadow = '0 0 0 3px #eaea67';
+          selectedBackgroundSVG = svgContent;
+        };
+        if (idx === 0) {
+          previewDiv.style.boxShadow = '0 0 0 3px #eaea67';
+          selectedBackgroundSVG = svgContent;
+        }
+        backgroundPreviews.appendChild(previewDiv);
+      };
+      reader.readAsText(file);
+    });
+  });
+  // Pattern folder picker and preview logic
+  patternFolder.addEventListener('change', (e) => {
+    patternFiles = Array.from(e.target.files).filter(f => f.name.endsWith('.svg'));
+    patternPreviews.innerHTML = '';
+    selectedPatternSVG = null;
+    if (patternFiles.length === 0) {
+      patternPreviews.innerHTML = '<div style="color:red;">No SVG patterns found in folder.</div>';
+      return;
+    }
+    patternFiles.forEach((file, idx) => {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const svgContent = ev.target.result.replace(/<\?xml.*?\?>/, '').replace(/<!DOCTYPE.*?>/, '');
+        const previewDiv = document.createElement('div');
+        previewDiv.style.border = '2px solid #444';
+        previewDiv.style.borderRadius = '8px';
+        previewDiv.style.background = '#fff';
+        previewDiv.style.padding = '4px';
+        previewDiv.style.cursor = 'pointer';
+        previewDiv.style.width = '60px';
+        previewDiv.style.height = '60px';
+        previewDiv.style.display = 'flex';
+        previewDiv.style.alignItems = 'center';
+        previewDiv.style.justifyContent = 'center';
+        previewDiv.innerHTML = `<svg width="48" height="48">${svgContent}</svg>`;
+        previewDiv.title = file.name;
+        previewDiv.onclick = () => {
+          // Highlight selected
+          Array.from(patternPreviews.children).forEach(c => c.style.boxShadow = '');
+          previewDiv.style.boxShadow = '0 0 0 3px #67eaea';
+          selectedPatternSVG = svgContent;
+        };
+        if (idx === 0) {
+          previewDiv.style.boxShadow = '0 0 0 3px #67eaea';
+          selectedPatternSVG = svgContent;
+        }
+        patternPreviews.appendChild(previewDiv);
+      };
+      reader.readAsText(file);
+    });
+  });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      if (file.type === 'image/svg+xml') {
+        reader.onload = function(ev) {
+          uploadedSVG = ev.target.result;
+          uploadedImg = null;
+          previewDiv.innerHTML = '<div style="text-align:center;">SVG Preview:</div>' +
+            '<div style="background:#fff;border-radius:8px;display:inline-block;padding:8px;"><svg width="200" height="200">' +
+            ev.target.result.replace(/<\?xml.*?\?>/, '').replace(/<!DOCTYPE.*?>/, '') + '</svg></div>';
+          resultDiv.innerHTML = '<div>SVG uploaded. Click Fill with Pattern.</div>';
+        };
+        reader.readAsText(file);
+      } else if (file.type.startsWith('image/')) {
+        reader.onload = function(ev) {
+          uploadedImg = ev.target.result;
+          uploadedSVG = null;
+          previewDiv.innerHTML = '<div style="text-align:center;">Image Preview:</div>' +
+            '<img src="' + uploadedImg + '" style="max-width:200px;max-height:200px;border-radius:8px;background:#fff;padding:8px;" />';
+          resultDiv.innerHTML = '<div>Image uploaded. Click Fill with Pattern.</div>';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        previewDiv.innerHTML = '';
+        resultDiv.innerHTML = '<div style="color:red;">Unsupported file type.</div>';
+      }
+    });
+
+    fillBtn.addEventListener('click', () => {
+      // Use selected pattern from folder picker, or fallback to default
+      let selectedPattern = `<pattern id="filigree" patternUnits="userSpaceOnUse" width="40" height="40">
+        <circle cx="20" cy="20" r="16" fill="none" stroke="#fff" stroke-width="2"/>
+        <path d="M20,4 Q36,20 20,36 Q4,20 20,4 Z" fill="none" stroke="#67eaea" stroke-width="2"/>
+      </pattern>`;
+      if (selectedPatternSVG) {
+        // Wrap SVG content as pattern
+        selectedPattern = `<pattern id="filigree" patternUnits="userSpaceOnUse" width="40" height="40">${selectedPatternSVG}</pattern>`;
+      }
+      if (uploadedSVG) {
+        // Fill only the outer boundary of SVG shape with selected pattern
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(uploadedSVG, 'image/svg+xml');
+        const svgEl = svgDoc.documentElement;
+        // Add selected filigree pattern as a background fill
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        defs.innerHTML = selectedPattern;
+        svgEl.insertBefore(defs, svgEl.firstChild);
+        svgEl.setAttribute('width', '320');
+        svgEl.setAttribute('height', '320');
+        svgEl.setAttribute('viewBox', '0 0 320 320');
+        // Find only the outermost path (ignore holes)
+        let outerPath = null;
+        const allPaths = svgEl.querySelectorAll('path');
+        if (allPaths.length > 1) {
+          // Heuristic: the longest path is usually the outer boundary
+          let maxLen = 0;
+          allPaths.forEach(p => {
+            const len = p.getTotalLength ? p.getTotalLength() : (p.getAttribute('d') || '').length;
+            if (len > maxLen) {
+              maxLen = len;
+              outerPath = p;
+            }
+          });
+        } else if (allPaths.length === 1) {
+          outerPath = allPaths[0];
+        }
+        if (outerPath) {
+          // Remove any fill='none' and force pattern fill
+          outerPath.setAttribute('fill', 'url(#filigree)');
+          if (outerPath.getAttribute('fill') === 'none') {
+            outerPath.setAttribute('fill', 'url(#filigree)');
+          }
+        }
+        // Remove fill from other paths (holes)
+        allPaths.forEach(p => {
+          if (p !== outerPath) {
+            p.setAttribute('fill', 'none');
+          }
+        });
+        // For polygons, ellipses, etc., apply only if no paths
+        if (!outerPath) {
+          const polygons = svgEl.querySelectorAll('polygon');
+          if (polygons.length) {
+            polygons[0].setAttribute('fill', 'url(#filigree)');
+            for (let i = 1; i < polygons.length; ++i) polygons[i].setAttribute('fill', 'none');
+          }
+          const ellipses = svgEl.querySelectorAll('ellipse');
+          if (ellipses.length) {
+            ellipses[0].setAttribute('fill', 'url(#filigree)');
+            for (let i = 1; i < ellipses.length; ++i) ellipses[i].setAttribute('fill', 'none');
+          }
+          const circles = svgEl.querySelectorAll('circle');
+          if (circles.length) {
+            circles[0].setAttribute('fill', 'url(#filigree)');
+            for (let i = 1; i < circles.length; ++i) circles[i].setAttribute('fill', 'none');
+          }
+          const rects = svgEl.querySelectorAll('rect');
+          if (rects.length) {
+            rects[0].setAttribute('fill', 'url(#filigree)');
+            for (let i = 1; i < rects.length; ++i) rects[i].setAttribute('fill', 'none');
+          }
+        }
+        lastSVG = svgEl.outerHTML;
+        resultDiv.innerHTML = '<div class="pattern-preview">' + lastSVG + '</div>' +
+          '<a class="download-link" href="data:image/svg+xml;charset=utf-8,' + encodeURIComponent(lastSVG) + '" download="design-fill-pro.svg">Download SVG</a>';
+      } else if (uploadedImg) {
+        // For raster images, overlay a pattern (not true fill, but demo)
+        const svg = `<svg class="pattern-svg" viewBox="0 0 320 320">
+          <defs>
+            ${selectedPattern}
+          </defs>
+          <image href="${uploadedImg}" x="0" y="0" width="320" height="320" />
+          <rect x="0" y="0" width="320" height="320" fill="url(#filigree)" opacity="0.5" />
+        </svg>`;
+        lastSVG = svg;
+        resultDiv.innerHTML = '<div class="pattern-preview">' + svg + '</div>' +
+          '<a class="download-link" href="data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '" download="design-fill-pro.svg">Download SVG</a>';
+      } else {
+        resultDiv.innerHTML = '<div style="color:red;">Please upload a file first.</div>';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -19,15 +19,59 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-        .hero h1 {
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+        .hero-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .hero-image svg {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            filter: drop-shadow(0 10px 30px rgba(168, 85, 247, 0.3));
+        }
+        .hero-content h1 {
             font-size: 3.5rem;
             margin-bottom: 1rem;
             background: linear-gradient(135deg, #a855f7, #3b82f6, #10b981);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-align: center;
-            padding: 4rem 2rem 2rem;
+        }
+        .hero-content p {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+        @media (max-width: 768px) {
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            .hero-image {
+                order: 2;
+            }
+            .hero-content {
+                order: 1;
+            }
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            .hero-content p {
+                font-size: 1rem;
+            }
+            .hero-image svg {
+                max-width: 280px;
+            }
         }
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
         .section { margin-bottom: 4rem; }
@@ -93,8 +137,60 @@
 </head>
 <body>
     <div class="hero">
-        <h1>Design Fill Pro</h1>
-        <p style="text-align: center; font-size: 1.2rem; color: #94a3b8;">Transform your designs with premium patterns and professional fills</p>
+        <div class="hero-image">
+            <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="logoTitle logoDesc" focusable="false">
+                <title id="logoTitle">Design Fill Pro Logo</title>
+                <desc id="logoDesc">A circular logo featuring a large letter D, a brush tool icon, and a colorful pattern grid representing design and fill services</desc>
+                <!-- Logo Background Circle -->
+                <defs>
+                    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#a855f7;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+                    </linearGradient>
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <filter id="textShadow">
+                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#ffffff" flood-opacity="0.9"/>
+                    </filter>
+                </defs>
+                
+                <!-- Main Circle -->
+                <circle cx="200" cy="200" r="180" fill="url(#logoGradient)" opacity="0.2"/>
+                <circle cx="200" cy="200" r="160" fill="none" stroke="url(#logoGradient)" stroke-width="3" filter="url(#glow)"/>
+                
+                <!-- Design Fill Pattern Icon -->
+                <g transform="translate(200, 200)">
+                    <!-- Brush/Fill Tool -->
+                    <path d="M -60,-80 L -40,-100 L 40,-20 L 20,0 Z" fill="url(#logoGradient)" opacity="0.8"/>
+                    <circle cx="30" cy="-10" r="8" fill="#3b82f6"/>
+                    
+                    <!-- Pattern Grid -->
+                    <g opacity="0.6">
+                        <rect x="-80" y="20" width="30" height="30" fill="#a855f7" rx="5"/>
+                        <rect x="-40" y="20" width="30" height="30" fill="#3b82f6" rx="5"/>
+                        <rect x="0" y="20" width="30" height="30" fill="#10b981" rx="5"/>
+                        <rect x="40" y="20" width="30" height="30" fill="#f093fb" rx="5"/>
+                        <rect x="-60" y="60" width="30" height="30" fill="#10b981" rx="5"/>
+                        <rect x="-20" y="60" width="30" height="30" fill="#a855f7" rx="5"/>
+                        <rect x="20" y="60" width="30" height="30" fill="#3b82f6" rx="5"/>
+                        <rect x="60" y="60" width="30" height="30" fill="#f093fb" rx="5"/>
+                    </g>
+                    
+                    <!-- Center "D" for Design -->
+                    <text x="0" y="-35" font-size="80" font-weight="bold" fill="url(#logoGradient)" text-anchor="middle" font-family="'Segoe UI', sans-serif" filter="url(#textShadow)">D</text>
+                </g>
+            </svg>
+        </div>
+        <div class="hero-content">
+            <h1>Design Fill Pro</h1>
+            <p>Transform your designs with premium patterns and professional fills. Create stunning visuals with our powerful design tools and extensive pattern library.</p>
+        </div>
     </div>
 
     <div class="container">

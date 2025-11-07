@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Fill Pro - Fill with Pattern Demo</title>
+    <style>
+        body { font-family: Arial, Helvetica, sans-serif; background: #0f1724; color: #e6eef8; padding: 2rem; }
+        .controls { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+        .btn { background: #7c3aed; color: white; padding: 0.6rem 1rem; border: none; border-radius: 8px; cursor: pointer; }
+        .btn.secondary { background: #334155; }
+        #preview { border: 1px dashed rgba(255,255,255,0.08); background: #051025; padding: 1rem; min-height: 320px; display: flex; align-items: center; justify-content: center; }
+        svg { max-width: 100%; height: auto; }
+        .pattern-select { background: rgba(255,255,255,0.03); color: #e6eef8; border: 1px solid rgba(255,255,255,0.04); padding: 0.4rem; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <h1>Fill with Pattern — Demo</h1>
+    <p>Upload an SVG and click "Fill with Pattern" to apply a repeating pattern to shapes inside the SVG.</p>
+
+    <div class="controls">
+        <label class="btn" for="fileInput">Upload SVG</label>
+        <input id="fileInput" type="file" accept=".svg" style="display:none">
+
+        <select id="patternSelect" class="pattern-select">
+            <option value="stripes">Diagonal Stripes</option>
+            <option value="dots">Dots</option>
+            <option value="grid">Grid</option>
+            <option value="hatch">Hatch</option>
+        </select>
+
+        <button id="fillPatternBtn" class="btn" disabled>Fill with Pattern</button>
+        <button id="clearBtn" class="btn secondary" disabled>Clear Fill</button>
+    </div>
+
+    <div id="preview">No SVG loaded</div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const fillBtn = document.getElementById('fillPatternBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const patternSelect = document.getElementById('patternSelect');
+        let currentSvg = null;
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            if (!file.name.toLowerCase().endsWith('.svg')) {
+                alert('Please upload an SVG file.');
+                return;
+            }
+            const text = await file.text();
+            // sanitize minimally by parsing
+            preview.innerHTML = text;
+            // find the first svg element inside preview
+            currentSvg = preview.querySelector('svg');
+            if (currentSvg) {
+                // ensure viewBox exists for scaling
+                if (!currentSvg.getAttribute('viewBox')) {
+                    const w = currentSvg.getAttribute('width');
+                    const h = currentSvg.getAttribute('height');
+                    if (w && h) currentSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+                }
+                fillBtn.disabled = false;
+                clearBtn.disabled = false;
+            } else {
+                alert('No <svg> element found in the uploaded file.');
+                fillBtn.disabled = true;
+                clearBtn.disabled = true;
+            }
+        });
+
+        function createPatternElement(type, id) {
+            const xmlns = 'http://www.w3.org/2000/svg';
+            const pattern = document.createElementNS(xmlns, 'pattern');
+            pattern.setAttribute('id', id);
+            pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+            pattern.setAttribute('width', '20');
+            pattern.setAttribute('height', '20');
+
+            if (type === 'stripes') {
+                // diagonal stripe
+                const rect = document.createElementNS(xmlns, 'rect');
+                rect.setAttribute('width', '20');
+                rect.setAttribute('height', '20');
+                rect.setAttribute('fill', '#0f1724');
+                pattern.appendChild(rect);
+                const path = document.createElementNS(xmlns, 'path');
+                path.setAttribute('d', 'M-2,2 l4,-4 M0,20 l20,-20 M18,22 l4,-4');
+                path.setAttribute('stroke', '#a855f7');
+                path.setAttribute('stroke-width', '4');
+                path.setAttribute('stroke-linecap', 'square');
+                pattern.appendChild(path);
+            } else if (type === 'dots') {
+                const rect = document.createElementNS(xmlns, 'rect');
+                rect.setAttribute('width', '20');
+                rect.setAttribute('height', '20');
+                rect.setAttribute('fill', '#071027');
+                pattern.appendChild(rect);
+                const circle = document.createElementNS(xmlns, 'circle');
+                circle.setAttribute('cx', '10');
+                circle.setAttribute('cy', '10');
+                circle.setAttribute('r', '3');
+                circle.setAttribute('fill', '#3b82f6');
+                pattern.appendChild(circle);
+            } else if (type === 'grid') {
+                const rect = document.createElementNS(xmlns, 'rect');
+                rect.setAttribute('width', '20');
+                rect.setAttribute('height', '20');
+                rect.setAttribute('fill', '#071027');
+                pattern.appendChild(rect);
+                const path = document.createElementNS(xmlns, 'path');
+                path.setAttribute('d', 'M0 0 L0 20 M0 0 L20 0');
+                path.setAttribute('stroke', '#06b6d4');
+                path.setAttribute('stroke-width', '0.8');
+                pattern.appendChild(path);
+            } else if (type === 'hatch') {
+                const rect = document.createElementNS(xmlns, 'rect');
+                rect.setAttribute('width', '10');
+                rect.setAttribute('height', '10');
+                rect.setAttribute('fill', '#071027');
+                pattern.setAttribute('width', '10');
+                pattern.setAttribute('height', '10');
+                pattern.appendChild(rect);
+                const path = document.createElementNS(xmlns, 'path');
+                path.setAttribute('d', 'M0,10 L10,0');
+                path.setAttribute('stroke', '#f97316');
+                path.setAttribute('stroke-width', '1.5');
+                pattern.appendChild(path);
+            }
+            return pattern;
+        }
+
+        function ensureDefs(svg) {
+            let defs = svg.querySelector('defs');
+            if (!defs) {
+                const xmlns = 'http://www.w3.org/2000/svg';
+                defs = document.createElementNS(xmlns, 'defs');
+                svg.insertBefore(defs, svg.firstChild);
+            }
+            return defs;
+        }
+
+        function applyPatternToShapes(svg, patternId) {
+            if (!svg) return;
+            // target common fillable elements
+            const selectors = ['path', 'rect', 'circle', 'ellipse', 'polygon', 'polyline', 'g'];
+            const elements = svg.querySelectorAll(selectors.join(','));
+            elements.forEach(el => {
+                // skip if element is itself a pattern or defs child
+                if (el.closest('defs')) return;
+                // set fill to pattern; for groups, set for children instead
+                if (el.tagName.toLowerCase() === 'g') {
+                    el.querySelectorAll('path,rect,circle,ellipse,polygon,polyline').forEach(child => {
+                        child.setAttribute('fill', `url(#${patternId})`);
+                    });
+                } else {
+                    el.setAttribute('fill', `url(#${patternId})`);
+                }
+            });
+        }
+
+        fillBtn.addEventListener('click', () => {
+            if (!currentSvg) return;
+            const type = patternSelect.value || 'stripes';
+            const id = 'dfp-pattern-' + Date.now();
+            const defs = ensureDefs(currentSvg);
+            const pattern = createPatternElement(type, id);
+            defs.appendChild(pattern);
+            applyPatternToShapes(currentSvg, id);
+            // make sure SVG elements reference the URL properly in the same document
+            alert('Pattern applied. Download or further edit the SVG from the preview.');
+        });
+
+        clearBtn.addEventListener('click', () => {
+            if (!currentSvg) return;
+            const elements = currentSvg.querySelectorAll('path,rect,circle,ellipse,polygon,polyline');
+            elements.forEach(el => {
+                // remove fill attribute only if it references our pattern
+                const fill = el.getAttribute('fill');
+                if (fill && fill.indexOf('url(#dfp-pattern-') !== -1) {
+                    el.removeAttribute('fill');
+                }
+            });
+            // remove defs patterns
+            const defs = currentSvg.querySelectorAll('defs > pattern[id^="dfp-pattern-"]');
+            defs.forEach(p => p.remove());
+            alert('Pattern fills cleared.');
+        });
+
+    </script>
+</body>
+</html>

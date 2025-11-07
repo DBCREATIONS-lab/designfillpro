@@ -89,7 +89,7 @@ export default function Home() {
             height: "auto", 
             margin: "0 auto 20px auto",
             display: "block",
-            filter: "drop-shadow(0 4px 20px rgba(0,0,0,0.2))"
+            filter: "drop-shadow(0 4px 20px rgba(255,255,255,0.3))"
           }} 
         />
         <h1 style={{ margin: "10px 0" }}>Design Fill Pro - Local Test</h1>

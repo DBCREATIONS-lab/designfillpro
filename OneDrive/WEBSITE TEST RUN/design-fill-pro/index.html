@@ -209,6 +209,21 @@
     </footer>
 
     <script>
+        // SVG Fill Pattern Override Function
+        function overrideSVGFillPattern(svgElement, fillPatternId) {
+            const fillPattern = document.getElementById(fillPatternId);
+            if (fillPattern) {
+                svgElement.setAttribute('fill', 'url(#' + fillPatternId + ')');
+                svgElement.classList.add('svg-fill-override');
+            } else {
+                console.warn('Fill pattern with id ' + fillPatternId + ' not found.');
+            }
+        }
+
+        // Example usage
+        // const svgElement = document.getElementById('my-svg-element');
+        // overrideSVGFillPattern(svgElement, 'my-fill-pattern');
+
         // File upload handling
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const files = e.target.files;

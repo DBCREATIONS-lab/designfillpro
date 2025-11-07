@@ -79,7 +79,21 @@ export default function Home() {
          onDragOver={onDragOver}
          onDragLeave={onDragLeave}
     >
-      <h1>Design Fill Pro - Local Test</h1>
+      {/* Header updated on 2025-11-07: Added Design Fill Pro logo above title, no previous logo/icon replaced */}
+      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <img 
+          src="/assets/designfillpro-logo.png" 
+          alt="Design Fill Pro Logo" 
+          style={{ 
+            maxWidth: "300px", 
+            height: "auto", 
+            margin: "0 auto 20px auto",
+            display: "block",
+            filter: "drop-shadow(0 4px 20px rgba(255,255,255,0.3))"
+          }} 
+        />
+        <h1 style={{ margin: "10px 0" }}>Design Fill Pro - Local Test</h1>
+      </div>
       <div style={{ margin: "0.5rem 0" }}>
         <input type="file" onChange={(e) => { setFile(e.target.files[0]); setPreviewData(null); setError(null); }} />
       </div>

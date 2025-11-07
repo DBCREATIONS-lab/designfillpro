@@ -57,6 +57,15 @@
                 grid-template-columns: 1fr;
                 gap: 2rem;
             }
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            .hero-content p {
+                font-size: 1rem;
+            }
+            .hero-image svg {
+                max-width: 280px;
+            }
         }
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
         .section { margin-bottom: 4rem; }
@@ -123,7 +132,9 @@
 <body>
     <div class="hero">
         <div class="hero-image">
-            <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="logoTitle logoDesc">
+                <title id="logoTitle">Design Fill Pro Logo</title>
+                <desc id="logoDesc">A circular logo featuring a large letter D, a brush tool icon, and a colorful pattern grid representing design and fill services</desc>
                 <!-- Logo Background Circle -->
                 <defs>
                     <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -137,6 +148,9 @@
                             <feMergeNode in="coloredBlur"/>
                             <feMergeNode in="SourceGraphic"/>
                         </feMerge>
+                    </filter>
+                    <filter id="textShadow">
+                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#ffffff" flood-opacity="0.9"/>
                     </filter>
                 </defs>
                 
@@ -163,8 +177,7 @@
                     </g>
                     
                     <!-- Center "D" for Design -->
-                    <text x="0" y="-35" font-size="80" font-weight="bold" fill="url(#logoGradient)" text-anchor="middle" font-family="'Segoe UI', sans-serif">D</text>
-                    <text x="0" y="-37" font-size="80" font-weight="bold" fill="white" text-anchor="middle" font-family="'Segoe UI', sans-serif" opacity="0.9">D</text>
+                    <text x="0" y="-35" font-size="80" font-weight="bold" fill="url(#logoGradient)" text-anchor="middle" font-family="'Segoe UI', sans-serif" filter="url(#textShadow)">D</text>
                 </g>
             </svg>
         </div>
